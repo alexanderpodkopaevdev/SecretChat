@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "387432125231",
+    "firebase_url": "https://secretchat-b9068.firebaseio.com",
+    "project_id": "secretchat-b9068",
+    "storage_bucket": "secretchat-b9068.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:387432125231:android:db6f370923c19ec6e807da",
+        "android_client_info": {
+          "package_name": "com.example.secretchat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "387432125231-802mstmr09nnimr57s9pi4s91ugiuk93.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.secretchat",
+            "certificate_hash": "37212b3a8a4b404824fed29cab8485118383bc84"
+          }
+        },
+        {
+          "client_id": "387432125231-q0te4t37l72udaafefs6m0sm5os602d8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCqmyasWLkif7-DFp1APfBKytyc2K8hvlM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "387432125231-q0te4t37l72udaafefs6m0sm5os602d8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
