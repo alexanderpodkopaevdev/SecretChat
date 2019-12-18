@@ -6,9 +6,6 @@ import android.text.Editable
 import android.text.InputFilter
 import android.text.TextWatcher
 import android.widget.ProgressBar import com.google.firebase.database.*
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.ktx.app
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -35,6 +32,7 @@ class MainActivity : AppCompatActivity() {
         iBtnSendMessage.setOnClickListener {
             if (etMessage.text.isNotEmpty()) {
                 val message = SecretMessage(etMessage.text.toString(),userName,null)
+                etMessage.setText("")
                 messagesDB.push().setValue(message)
             }
             else {

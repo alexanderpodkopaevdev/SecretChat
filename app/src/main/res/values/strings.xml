@@ -1,6 +1,18 @@
 <resources>
-    <string name="app_name">Secret Chat</string>
-    <string name="enter_message">Enter message</string>
+    <string name="app_name">Секретный чат</string>
+    <string name="enter_message">Введите сообщение</string>
     <string name="send">Send</string>
     <string name="send_photo">Send photo</string>
+    <string name="title">Септет богов</string>
+    <string name="logo">logo</string>
+    <string name="name">Имя</string>
+    <string name="email">E-mail</string>
+    <string name="password">Пароль</string>
+    <string name="sign_up">Зарегистрироваться</string>
+    <string name="login_in">Войти</string>
+    <string name="enter">Уже зарегистрированы?\nНажмите для входа</string>
+    <string name="password_second">Повторите пароль</string>
+    <string name="text_login">Или войдите</string>
+    <string name="text_sign_up">Или зарегистрируйтесь</string>
+
 </resources>
