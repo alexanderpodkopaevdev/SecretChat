@@ -21,7 +21,7 @@ class SecretMessageAdapter(context: Context, resource: Int, messages: List<Secre
         val message = getItem(position)
         if (message!= null) {
             view.tvName.text = message.name
-            if (message.imageUrl == null) {
+            if (message.imageUrl.isNullOrEmpty()) {
                 view.tvText.visibility = View.VISIBLE
                 view.tvText.text = message.text
                 view.ivPhoto.visibility = View.GONE
