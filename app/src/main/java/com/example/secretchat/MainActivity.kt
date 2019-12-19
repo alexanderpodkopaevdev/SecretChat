@@ -1,20 +1,34 @@
 package com.example.secretchat
 
-import androidx.appcompat.app.AppCompatActivity
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.InputFilter
 import android.text.TextWatcher
-import android.widget.ProgressBar import com.google.firebase.database.*
+import android.view.Menu
+import android.view.MenuItem
+import android.widget.ProgressBar
+import androidx.appcompat.app.AppCompatActivity
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.*
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var adapter: SecretMessageAdapter
     private var userName = "Default user"
-    lateinit var database : FirebaseDatabase
-    lateinit var messagesDB : DatabaseReference
+    private var imageCode = 123
+    lateinit var database: FirebaseDatabase
+    lateinit var messagesDB: DatabaseReference
     lateinit var messagesChildEventListener: ChildEventListener
+    lateinit var usersDB: DatabaseReference
+    lateinit var usersChildEventListener: ChildEventListener
+    lateinit var storage: FirebaseStorage
+    lateinit var storageReference: StorageReference
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,27 +36,37 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         database = FirebaseDatabase.getInstance()
         messagesDB = database.getReference("messages")
+        usersDB = database.getReference("users")
+
+        storage = FirebaseStorage.getInstance()
+        storageReference = storage.getReference("chat_images")
+
+        val user = FirebaseAuth.getInstance().currentUser
+        userName = user?.displayName.toString()
 
 
         val messages = ArrayList<SecretMessage>()
-        adapter = SecretMessageAdapter(this,R.layout.message_item,messages)
+        adapter = SecretMessageAdapter(this, R.layout.message_item, messages)
         lwMessage.adapter = adapter
         pbLoad.visibility = ProgressBar.INVISIBLE
         etMessage.filters = arrayOf(InputFilter.LengthFilter(500))
         iBtnSendMessage.setOnClickListener {
             if (etMessage.text.isNotEmpty()) {
-                val message = SecretMessage(etMessage.text.toString(),userName,null)
+                val message = SecretMessage(etMessage.text.toString(), userName, null)
                 etMessage.setText("")
                 messagesDB.push().setValue(message)
-            }
-            else {
+            } else {
                 iBtnSendMessage.isClickable = false
             }
         }
         iBtnSendPhoto.setOnClickListener {
-
+            val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+                type = "image/*"
+                putExtra(Intent.EXTRA_LOCAL_ONLY,true)
+            }
+            startActivityForResult(Intent.createChooser(intent,"Выберите изображение"), imageCode)
         }
-        etMessage.addTextChangedListener(object : TextWatcher{
+        etMessage.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
             }
 
@@ -59,7 +83,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
-        messagesChildEventListener = object:  ChildEventListener {
+        messagesChildEventListener = object : ChildEventListener {
             override fun onCancelled(p0: DatabaseError) {
             }
 
@@ -79,8 +103,77 @@ class MainActivity : AppCompatActivity() {
         }
         messagesDB.addChildEventListener(messagesChildEventListener)
 
+        usersChildEventListener = object : ChildEventListener{
+            override fun onCancelled(p0: DatabaseError) {
+
+            }
+
+            override fun onChildMoved(p0: DataSnapshot, p1: String?) {
+            }
+
+            override fun onChildChanged(p0: DataSnapshot, p1: String?) {
+            }
+
+            override fun onChildAdded(p0: DataSnapshot, p1: String?) {
+                val user = p0.getValue(User::class.java)
+                if(user?.id == FirebaseAuth.getInstance().currentUser?.uid) {
+                    userName = user?.name.toString()
+                }
+            }
+
+            override fun onChildRemoved(p0: DataSnapshot) {
+            }
+        }
+        usersDB.addChildEventListener(usersChildEventListener)
 
 
+    }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        when (item?.itemId) {
+            R.id.signOut -> {
+                FirebaseAuth.getInstance().signOut()
+                finish()
+            }
+
+        }
+        return super.onOptionsItemSelected(item)
+
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == imageCode && resultCode == Activity.RESULT_OK) {
+            if (data != null) {
+                val selectedImageUri = data.data
+                if (selectedImageUri != null) {
+                    val imageReference = storageReference.child(selectedImageUri.lastPathSegment!!)
+                    val uploadTask = imageReference.putFile(selectedImageUri)
+
+                    val urlTask = uploadTask.continueWithTask { task ->
+                        if (!task.isSuccessful) {
+                            task.exception?.let {
+                                throw it
+                            }
+                        }
+                        imageReference.downloadUrl
+                    }.addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            val downloadUri = task.result
+                            val message = SecretMessage(null, userName, downloadUri.toString())
+                            messagesDB.push().setValue(message)
+                        } else {
+                            // Handle failures
+                            // ...
+                        }
+                    }
+                }
+            }
+        }
     }
 }

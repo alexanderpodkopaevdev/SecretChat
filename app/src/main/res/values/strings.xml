@@ -14,5 +14,6 @@
     <string name="password_second">Повторите пароль</string>
     <string name="text_login">Или войдите</string>
     <string name="text_sign_up">Или зарегистрируйтесь</string>
+    <string name="sign_out">Выйти</string>
 
 </resources>
