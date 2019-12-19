@@ -21,6 +21,7 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var adapter: SecretMessageAdapter
     private var userName = "Default user"
     private var imageCode = 123
+    lateinit var recipientUserId: String
     lateinit var database: FirebaseDatabase
     lateinit var messagesDB: DatabaseReference
     lateinit var messagesChildEventListener: ChildEventListener
@@ -30,10 +31,12 @@ class ChatActivity : AppCompatActivity() {
     lateinit var storageReference: StorageReference
 
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
+        if (intent != null) {
+            recipientUserId = intent.getStringExtra("recipientUserId")
+        }
         database = FirebaseDatabase.getInstance()
         messagesDB = database.getReference("messages")
         usersDB = database.getReference("users")
@@ -52,7 +55,13 @@ class ChatActivity : AppCompatActivity() {
         etMessage.filters = arrayOf(InputFilter.LengthFilter(500))
         iBtnSendMessage.setOnClickListener {
             if (etMessage.text.isNotEmpty()) {
-                val message = SecretMessage(etMessage.text.toString(), userName, null)
+                val message = SecretMessage(
+                    etMessage.text.toString(),
+                    userName,
+                    null,
+                    FirebaseAuth.getInstance().currentUser?.uid.toString(),
+                    recipientUserId
+                )
                 etMessage.setText("")
                 messagesDB.push().setValue(message)
             } else {
@@ -62,9 +71,9 @@ class ChatActivity : AppCompatActivity() {
         iBtnSendPhoto.setOnClickListener {
             val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
                 type = "image/*"
-                putExtra(Intent.EXTRA_LOCAL_ONLY,true)
+                putExtra(Intent.EXTRA_LOCAL_ONLY, true)
             }
-            startActivityForResult(Intent.createChooser(intent,"Выберите изображение"), imageCode)
+            startActivityForResult(Intent.createChooser(intent, "Выберите изображение"), imageCode)
         }
         etMessage.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
@@ -95,7 +104,12 @@ class ChatActivity : AppCompatActivity() {
 
             override fun onChildAdded(p0: DataSnapshot, p1: String?) {
                 val message = p0.getValue(SecretMessage::class.java)
-                adapter.add(message)
+                if (message?.sender == FirebaseAuth.getInstance().currentUser?.uid.toString()
+                    && message.recipient == recipientUserId ||
+                    message?.recipient == FirebaseAuth.getInstance().currentUser?.uid.toString()
+                    && message.sender == recipientUserId
+                )
+                    adapter.add(message)
             }
 
             override fun onChildRemoved(p0: DataSnapshot) {
@@ -103,7 +117,7 @@ class ChatActivity : AppCompatActivity() {
         }
         messagesDB.addChildEventListener(messagesChildEventListener)
 
-        usersChildEventListener = object : ChildEventListener{
+        usersChildEventListener = object : ChildEventListener {
             override fun onCancelled(p0: DatabaseError) {
 
             }
@@ -116,7 +130,7 @@ class ChatActivity : AppCompatActivity() {
 
             override fun onChildAdded(p0: DataSnapshot, p1: String?) {
                 val user = p0.getValue(User::class.java)
-                if(user?.id == FirebaseAuth.getInstance().currentUser?.uid) {
+                if (user?.id == FirebaseAuth.getInstance().currentUser?.uid) {
                     userName = user?.name.toString()
                 }
             }
@@ -139,11 +153,11 @@ class ChatActivity : AppCompatActivity() {
             R.id.signOut -> {
                 FirebaseAuth.getInstance().signOut()
                 finish()
+                startActivity(Intent(this@ChatActivity, SignInActivity::class.java))
             }
 
         }
         return super.onOptionsItemSelected(item)
-
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -165,7 +179,11 @@ class ChatActivity : AppCompatActivity() {
                     }.addOnCompleteListener { task ->
                         if (task.isSuccessful) {
                             val downloadUri = task.result
-                            val message = SecretMessage(null, userName, downloadUri.toString())
+                            val message = SecretMessage(
+                                null, userName, downloadUri.toString(),
+                                FirebaseAuth.getInstance().currentUser?.uid.toString(),
+                                recipientUserId
+                            )
                             messagesDB.push().setValue(message)
                         } else {
                             // Handle failures

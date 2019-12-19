@@ -6,18 +6,33 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.user_item.view.*
 
-class UserAdapter(private val users: List<User>) : RecyclerView.Adapter<UserAdapter.UserViewHolder>() {
+class UserAdapter(private val users: List<User>) :
+    RecyclerView.Adapter<UserAdapter.UserViewHolder>() {
+    private lateinit var listener: OnUserClickListener
 
+    interface OnUserClickListener {
+        fun onUserClick(position: Int)
+    }
 
-    class UserViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        init {
-            itemView.setOnClickListener {
+    fun setOnUserClickListener(listener: OnUserClickListener) {
+        this.listener = listener
+    }
 
-            }
-        }
+    class UserViewHolder(itemView: View, listener: OnUserClickListener?) :
+        RecyclerView.ViewHolder(itemView) {
+
 
         val avatar = itemView.ivItemUserAvatar
         val userName = itemView.tvItemUserName
+
+        init {
+            itemView.setOnClickListener {
+                if (listener != null) {
+                    if (adapterPosition != RecyclerView.NO_POSITION)
+                        listener.onUserClick(adapterPosition)
+                }
+            }
+        }
 
     }
 
@@ -27,8 +42,7 @@ class UserAdapter(private val users: List<User>) : RecyclerView.Adapter<UserAdap
                 R.layout.user_item,
                 parent,
                 false
-            )
-        )
+            ), listener)
     }
 
     override fun getItemCount(): Int {
@@ -38,6 +52,6 @@ class UserAdapter(private val users: List<User>) : RecyclerView.Adapter<UserAdap
     override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
         val userItem = users[position]
         holder.userName.text = userItem.name
-        holder.avatar.setImageResource(userItem.avatar?:R.drawable.user_image)
+        holder.avatar.setImageResource(userItem.avatar ?: R.drawable.user_image)
     }
 }
