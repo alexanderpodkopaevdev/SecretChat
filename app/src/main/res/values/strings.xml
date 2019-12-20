@@ -15,5 +15,6 @@
     <string name="text_login">Или войдите</string>
     <string name="text_sign_up">Или зарегистрируйтесь</string>
     <string name="sign_out">Выйти</string>
+    <string name="change_photo">Изменить фото</string>
 
 </resources>

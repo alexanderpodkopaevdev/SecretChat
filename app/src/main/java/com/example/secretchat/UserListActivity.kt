@@ -1,5 +1,6 @@
 package com.example.secretchat
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
@@ -14,10 +15,12 @@ import kotlinx.android.synthetic.main.activity_user_list.*
 
 class UserListActivity : AppCompatActivity() {
 
+
     lateinit var usersDBReference: DatabaseReference
     lateinit var usersChildEventListener: ChildEventListener
     lateinit var userAdapter: UserAdapter
     var users = ArrayList<User>()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,6 +28,7 @@ class UserListActivity : AppCompatActivity() {
 
         attachUserDBReferenceListener()
         buildRecyclerView()
+
 
 
     }
@@ -76,6 +80,7 @@ class UserListActivity : AppCompatActivity() {
     private fun goToChat(position: Int) {
         val intent = Intent(this@UserListActivity,ChatActivity::class.java)
         intent.putExtra("recipientUserId",users[position].id)
+        intent.putExtra("recipientUserName",users[position].name)
         startActivity(intent)
     }
 
@@ -91,7 +96,6 @@ class UserListActivity : AppCompatActivity() {
                 finish()
                 startActivity(Intent(this@UserListActivity, SignInActivity::class.java))
             }
-
         }
         return super.onOptionsItemSelected(item)
     }
@@ -103,4 +107,5 @@ class UserListActivity : AppCompatActivity() {
         a.flags = Intent.FLAG_ACTIVITY_NEW_TASK
         startActivity(a)
     }
+
 }

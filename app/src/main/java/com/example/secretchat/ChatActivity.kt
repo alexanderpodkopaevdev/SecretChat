@@ -22,6 +22,7 @@ class ChatActivity : AppCompatActivity() {
     private var userName = "Default user"
     private var imageCode = 123
     lateinit var recipientUserId: String
+    lateinit var recipientUserName: String
     lateinit var database: FirebaseDatabase
     lateinit var messagesDB: DatabaseReference
     lateinit var messagesChildEventListener: ChildEventListener
@@ -36,7 +37,11 @@ class ChatActivity : AppCompatActivity() {
         setContentView(R.layout.activity_chat)
         if (intent != null) {
             recipientUserId = intent.getStringExtra("recipientUserId")
+            recipientUserName = intent.getStringExtra("recipientUserName")
+
         }
+        title = recipientUserName
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
         database = FirebaseDatabase.getInstance()
         messagesDB = database.getReference("messages")
         usersDB = database.getReference("users")
@@ -105,11 +110,16 @@ class ChatActivity : AppCompatActivity() {
             override fun onChildAdded(p0: DataSnapshot, p1: String?) {
                 val message = p0.getValue(SecretMessage::class.java)
                 if (message?.sender == FirebaseAuth.getInstance().currentUser?.uid.toString()
-                    && message.recipient == recipientUserId ||
-                    message?.recipient == FirebaseAuth.getInstance().currentUser?.uid.toString()
-                    && message.sender == recipientUserId
-                )
+                    && message.recipient == recipientUserId
+                ) {
+                    message.isMine = true
                     adapter.add(message)
+                } else if (message?.recipient == FirebaseAuth.getInstance().currentUser?.uid.toString()
+                    && message.sender == recipientUserId
+                ) {
+                    message.isMine = false
+                    adapter.add(message)
+                }
             }
 
             override fun onChildRemoved(p0: DataSnapshot) {
